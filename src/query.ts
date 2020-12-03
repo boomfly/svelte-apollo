@@ -3,7 +3,6 @@ import type { DocumentNode } from "graphql";
 import { getClient } from "./context";
 import { Data, observableQueryToReadable } from "./observable";
 import type { ReadableQuery } from "./observable";
-import { restoring } from "./restore";
 
 export function query<TData = unknown, TVariables = unknown>(
 	query: DocumentNode,
@@ -17,14 +16,12 @@ export function query<TData = unknown, TVariables = unknown>(
 
 	// If client is restoring (e.g. from SSR), attempt synchronous readQuery first
 	let initialValue: TData | undefined;
-	if (restoring.has(client)) {
-		try {
-			// undefined = skip initial value (not in cache)
-			initialValue = client.readQuery(queryOptions) || undefined;
-		} catch (err) {
-			// Ignore preload errors
-		}
-	}
+  try {
+    // undefined = skip initial value (not in cache)
+    initialValue = client.readQuery(queryOptions) || undefined;
+  } catch (err) {
+    // Ignore preload errors
+  }
 
 	const observable = client.watchQuery<TData, TVariables>(queryOptions);
 	const store = observableQueryToReadable(
