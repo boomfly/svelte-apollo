@@ -1,6 +1,6 @@
 import type { WatchQueryOptions } from "@apollo/client";
 import type { DocumentNode } from "graphql";
-import { getClient } from "./context";
+import { getClient, getSSRContext } from "./context";
 import { Data, observableQueryToReadable } from "./observable";
 import type { ReadableQuery } from "./observable";
 
@@ -24,6 +24,16 @@ export function query<TData = unknown, TVariables = unknown>(
   }
 
 	const observable = client.watchQuery<TData, TVariables>(queryOptions);
+  
+  const ssrContext = getSSRContext();
+
+  if (ssrContext) {
+    if (!ssrContext.queries) {
+      ssrContext.queries = [];
+    }
+    ssrContext.queries.push(observable.result());
+  }
+
 	const store = observableQueryToReadable(
 		observable,
 		initialValue !== undefined
